@@ -3,6 +3,7 @@ from sqlalchemy import Column, String, Integer, create_engine
 from flask_sqlalchemy import SQLAlchemy
 from flask import jsonify
 from model.db import db
+from model.Category import get_categories
 
 QUESTIONS_PER_PAGE = 10
 
@@ -64,7 +65,13 @@ def get_questions():
     questions_raw = Question.query.all()
     pagination = paginate_questions(len(questions_raw))
     questions = map_questions(questions_raw, pagination)
-    return {"questions": questions}
+    categories = get_categories()
+
+    return {
+        "questions": questions,
+        "totalQuestions": len(questions),
+        "categories": list(map(lambda category: category["type"], categories)),
+    }
 
 
 def delete_question_by_id(question_id: int):

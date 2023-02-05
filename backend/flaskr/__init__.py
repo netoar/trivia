@@ -41,13 +41,8 @@ def create_app(test_config=None):
 
     @app.route("/categories/")
     def get_requests():
-        categories_raw = Category.query.all()
-        categories = []
-        for category_raw in categories_raw:
-            category.id = category_raw.id
-            category.type = category_raw.type
-            categories.append(category)
-        return categories
+        categories = Category.get_categories()
+        return jsonify(categories)
 
     """
     @TODO:
@@ -75,6 +70,11 @@ def create_app(test_config=None):
     This removal will persist in the database and when you refresh the page.
     """
 
+    @app.route("/question/<int:question_id>", methods=["DELETE"])
+    def delete_question(question_id):
+        questions = Question.delete_question_by_id(question_id)
+        return jsonify(questions)
+
     """
     @TODO:
     Create an endpoint to POST a new question,
@@ -85,6 +85,11 @@ def create_app(test_config=None):
     the form will clear and the question will appear at the end of the last page
     of the questions list in the "List" tab.
     """
+
+    @app.route("/questions", methods=["POST"])
+    def post_question():
+        questions = Question.post_question()
+        return jsonify(questions)
 
     """
     @TODO:
@@ -106,6 +111,11 @@ def create_app(test_config=None):
     category to be shown.
     """
 
+    @app.route("/category/<int:category_id>/questions", methods=["GET"])
+    def get_questions_based_category(category_id):
+        questions = Question.get_questions_category(category_id)
+        return jsonify(questions)
+
     """
     @TODO:
     Create a POST endpoint to get questions to play the quiz.
@@ -123,5 +133,19 @@ def create_app(test_config=None):
     Create error handlers for all expected errors
     including 404 and 422.
     """
+
+    @app.errorhandler(404)
+    def not_found(error):
+        return (
+            jsonify({"success": False, "error": 404, "message": "resource not found"}),
+            404,
+        )
+
+    @app.errorhandler(422)
+    def unprocessable(error):
+        return (
+            jsonify({"success": False, "error": 422, "message": "unprocessable"}),
+            422,
+        )
 
     return app

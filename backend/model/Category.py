@@ -15,3 +15,9 @@ class Category(db.Model):
 
     def format(self):
         return {"id": self.id, "type": self.type}
+
+
+def get_categories():
+    categories_raw = Category.query.all()
+    categories = [category.format() for category in categories_raw]
+    return categories

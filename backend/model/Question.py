@@ -124,10 +124,20 @@ def get_questions_category(category_id: int, offset: bool, page) -> dict:
         category_id_updated = category_id + 1
     else:
         category_id_updated = category_id
-    questions_raw = Question.query.filter_by(category=category_id_updated).all()
-    pagination = paginate_questions(page)
-    questions = map_questions(questions_raw, pagination)
-    return {"questions": questions, "total_questions": len(questions)}
+    questions_raw = Question.query.filter_by(category=category_id_updated).paginate(
+        page=page,
+        per_page=QUESTIONS_PER_PAGE,
+        error_out=True,
+        max_per_page=QUESTIONS_PER_PAGE,
+    )
+    # pagination = paginate_questions(page)
+    # del.query.filter_by(id=1).paginate(page=1, per_page=2)
+    questions = map_questions(questions_raw.items)
+    return {
+        "questions": questions,
+        "total_questions": len(questions),
+        "total_pages": questions_raw.pages,
+    }
 
 
 def search_term(search_term, page):
@@ -135,5 +145,5 @@ def search_term(search_term, page):
         Question.question.ilike("%" + search_term + "%")
     ).all()
     pagination = paginate_questions(page)
-    results = map_questions(questions_search, pagination)
+    results = map_questions(questions_search)
     return {"questions": results, "total_questions": len(results)}

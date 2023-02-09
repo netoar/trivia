@@ -1,7 +1,7 @@
 import os
 from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 import random
 from model import Question, db, Category
 
@@ -10,6 +10,8 @@ def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__)
     db.setup_db(app)
+    cors = CORS(app)
+    app.config["CORS_HEADERS"] = "Content-Type"
 
     @app.route("/")
     def hello():
@@ -40,9 +42,10 @@ def create_app(test_config=None):
     """
 
     @app.route("/categories/")
+    @cross_origin()
     def get_requests():
         categories = Category.get_categories()
-        return jsonify(categories)
+        return jsonify({"categories": categories})
 
     """
     @TODO:
@@ -59,7 +62,8 @@ def create_app(test_config=None):
 
     @app.route("/questions")
     def get_questions():
-        questions = Question.get_questions()
+        page = request.args.get("page", 1, type=int)
+        questions = Question.get_questions(page)
         return jsonify(questions)
 
     """
@@ -70,7 +74,7 @@ def create_app(test_config=None):
     This removal will persist in the database and when you refresh the page.
     """
 
-    @app.route("/question/<int:question_id>", methods=["DELETE"])
+    @app.route("/questions/<int:question_id>", methods=["DELETE"])
     def delete_question(question_id):
         questions = Question.delete_question_by_id(question_id)
         return jsonify(questions)
@@ -88,7 +92,7 @@ def create_app(test_config=None):
 
     @app.route("/questions", methods=["POST"])
     def post_question():
-        questions = Question.post_question()
+        questions = Question.post_question(request.get_json())
         return jsonify(questions)
 
     """
@@ -102,6 +106,15 @@ def create_app(test_config=None):
     Try using the word "title" to start.
     """
 
+    @app.route("/questions/search", methods=["POST"])
+    def search_venues():
+        body = request.get_json()
+        page = request.args.get("page", 1, type=int)
+        search_term = body.get("searchTerm" or None)
+        if search_term is not None:
+            questions = Question.search_term(search_term, page)
+        return jsonify(questions)
+
     """
     @TODO:
     Create a GET endpoint to get questions based on category.
@@ -111,9 +124,10 @@ def create_app(test_config=None):
     category to be shown.
     """
 
-    @app.route("/category/<int:category_id>/questions", methods=["GET"])
+    @app.route("/categories/<int:category_id>/questions", methods=["GET"])
     def get_questions_based_category(category_id):
-        questions = Question.get_questions_category(category_id)
+        page = request.args.get("page", 1, type=int)
+        questions = Question.get_questions_category(category_id, True, page)
         return jsonify(questions)
 
     """
@@ -128,11 +142,18 @@ def create_app(test_config=None):
     and shown whether they were correct or not.
     """
 
+    @app.route("/quizzes", methods=["POST"])
+    def play():
+        body = request.get_json()
+        # page = request.args.get("page", 1, type=int)
+        category = body.get("category" or None)
+        category = body.get("category" or None)
+
     """
     @TODO:
     Create error handlers for all expected errors
     including 404 and 422.
-    """
+    
 
     @app.errorhandler(404)
     def not_found(error):
@@ -147,5 +168,5 @@ def create_app(test_config=None):
             jsonify({"success": False, "error": 422, "message": "unprocessable"}),
             422,
         )
-
+    """
     return app

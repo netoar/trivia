@@ -44,68 +44,96 @@ class Question(db.Model):
         }
 
 
+"""
 def map_questions(questions_raw, pagination):
     questions = [question.format() for question in questions_raw]
-    # questions = list(map(lambda question: question.format(), questions_raw))
-    # current_questions = questions[pagination[0] : pagination[1]]
     current_questions = questions[0 : pagination[1]]
+    return current_questions
+"""
+
+
+def map_questions(questions_raw):
+    current_questions = [question.format() for question in questions_raw]
     return current_questions
 
 
 def paginate_questions(page: int) -> tuple:
-    # TODO arreglar la paginación
-    # page = request.args.get("page", 1, type=int)
     start = (page - 1) * QUESTIONS_PER_PAGE
     end = start + QUESTIONS_PER_PAGE
     pagination = (start, end)
     return pagination
 
 
-def get_questions():
-    questions_raw = Question.query.all()
-    pagination = paginate_questions(len(questions_raw))
-    questions = map_questions(questions_raw, pagination)
+def get_questions(page):
+    # paginate(page=None, per_page=None, error_out=True, max_per_page=None)
+
+    questions_raw = Question.query.paginate(
+        page=page,
+        per_page=QUESTIONS_PER_PAGE,
+        error_out=True,
+        max_per_page=QUESTIONS_PER_PAGE,
+    )
+    # pagination = paginate_questions(page)
+    questions = map_questions(questions_raw.items)
     categories = get_categories()
 
     return {
         "questions": questions,
-        "totalQuestions": len(questions),
+        "total_questions": len(questions),
+        "currentCategory": None,
         "categories": list(map(lambda category: category["type"], categories)),
+        "total_pages": questions_raw.pages,
     }
 
 
 def delete_question_by_id(question_id: int):
-    question_to_remove = Question.filter_by(id=question_id).first()
+    category = 0
     try:
-        Question.delete(question_to_remove)
-    except:
+        question_to_remove = Question.query.filter_by(id=question_id).first()
+        category = question_to_remove.category
+        question_to_remove.delete()
+    except Exception as e:
         abort(422)
         db.session.rollback()
     finally:
         db.session.close()
-    questions = get_questions()
+    questions = get_questions_category(category, False)
     return questions
 
 
-def post_question():
-    body = request.get_json()
-    question_new.question = body.get("question", None)
-    question_new.answer = body.get("answer", None)
-    question_new.category = body.get("category", None)
-    question_new.difficulty = body.get("difficulty", None)
+def post_question(body):
     try:
-        Question.insert(question_new)
-    except:
+        question_new = Question(
+            question=body.get("question") or None,
+            answer=body.get("answer") or None,
+            category=body.get("category") or None,
+            difficulty=body.get("difficulty") or None,
+        )
+        question_new.insert()
+    except Exception as e:
         db.session.rollback()
         abort(422)
     finally:
         db.session.close()
-    questions = get_questions()
+    questions = get_questions(1)
     return questions
 
 
-def get_questions_category(category_id: int) -> dict:
-    questions_raw = Question.query.filter_by(category=category_id).all()
-    pagination = paginate_questions(len(questions_raw))
+def get_questions_category(category_id: int, offset: bool, page) -> dict:
+    if offset == True:
+        category_id_updated = category_id + 1
+    else:
+        category_id_updated = category_id
+    questions_raw = Question.query.filter_by(category=category_id_updated).all()
+    pagination = paginate_questions(page)
     questions = map_questions(questions_raw, pagination)
-    return {"questions": questions}
+    return {"questions": questions, "total_questions": len(questions)}
+
+
+def search_term(search_term, page):
+    questions_search = Question.query.filter(
+        Question.question.ilike("%" + search_term + "%")
+    ).all()
+    pagination = paginate_questions(page)
+    results = map_questions(questions_search, pagination)
+    return {"questions": results, "total_questions": len(results)}

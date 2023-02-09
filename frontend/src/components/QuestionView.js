@@ -30,6 +30,7 @@ class QuestionView extends Component {
           totalQuestions: result.total_questions,
           categories: result.categories,
           currentCategory: result.currentCategory,
+          totalPages: result.total_pages,
         });
         return;
       },
@@ -45,9 +46,9 @@ class QuestionView extends Component {
   }
 
   createPagination() {
-    let pageNumbers = [];
-    let maxPage = Math.ceil(this.state.totalQuestions / 10);
-    for (let i = 1; i <= maxPage; i++) {
+    const pageNumbers = [];
+    const totalPages = this.state.totalPages;
+    for (let i = 1; i <= totalPages; i++) {
       pageNumbers.push(
         <span
           key={i}
@@ -60,6 +61,7 @@ class QuestionView extends Component {
         </span>
       );
     }
+
     return pageNumbers;
   }
 
@@ -84,7 +86,7 @@ class QuestionView extends Component {
 
   submitSearch = (searchTerm) => {
     $.ajax({
-      url: `/questions`, //TODO: update request URL
+      url: `/questions/search`, //TODO: update request URL
       type: 'POST',
       dataType: 'json',
       contentType: 'application/json',

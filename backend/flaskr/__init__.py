@@ -145,9 +145,15 @@ def create_app(test_config=None):
     @app.route("/quizzes", methods=["POST"])
     def play():
         body = request.get_json()
+        category = None
+        question_id = None
         # page = request.args.get("page", 1, type=int)
-        category = body.get("category" or None)
-        category = body.get("category" or None)
+        if body != None:
+            category = body.get("category" or None)
+            questions = play(category, question_id)
+        else:
+            questions = Question.play(category=category, question_id=question_id)
+        return jsonify(questions)
 
     """
     @TODO:

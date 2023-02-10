@@ -147,3 +147,17 @@ def search_term(search_term, page):
     pagination = paginate_questions(page)
     results = map_questions(questions_search)
     return {"questions": results, "total_questions": len(results)}
+
+
+def play(category, question_id):
+    if category == None:
+        # this is the first time
+        questions_raw = Question.query.filter_by(category_id=2).first()
+        current_question = map_questions(question_raw)
+        return {"previousQuestion": question, "currentQuestion": current_question}
+    else:
+        questions_raw = Question.query.filter_by(
+            category_id=category and id != question_id
+        ).first()
+        current_question = map_questions(questions_raw)
+        return {"previousQuestion": question, "currentQuestion": current_question}

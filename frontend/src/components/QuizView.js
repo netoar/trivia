@@ -24,7 +24,11 @@ class QuizView extends Component {
       url: `/categories`, //TODO: update request URL
       type: 'GET',
       success: (result) => {
-        this.setState({ categories: result.categories });
+        const categories = {};
+        result.categories.forEach(category => {
+          categories[category.id] = category.type;
+        })
+        this.setState({ categories: categories });
         return;
       },
       error: (error) => {

@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask import jsonify
 from model.db import db
 from model.Category import get_categories
+import random
 
 QUESTIONS_PER_PAGE = 10
 
@@ -149,15 +150,25 @@ def search_term(search_term, page):
     return {"questions": results, "total_questions": len(results)}
 
 
-def play(category, question_id):
-    if category == None:
-        # this is the first time
-        questions_raw = Question.query.filter_by(category_id=2).first()
-        current_question = map_questions(question_raw)
-        return {"previousQuestion": question, "currentQuestion": current_question}
+def play(category_id, previous):
+    category = category_id
+    previous_question = []
+    questions = []
+
+    if category == 0:  # all categories
+        questions_raw = Question.query.all()
     else:
-        questions_raw = Question.query.filter_by(
-            category_id=category and id != question_id
-        ).first()
-        current_question = map_questions(questions_raw)
-        return {"previousQuestion": question, "currentQuestion": current_question}
+        questions_raw = Question.query.filter_by(category=category).all()
+
+    if previous != []:
+        for question in questions_raw:
+            if question.id not in previous:
+                questions.append(question)
+    else:
+        for question in questions_raw:
+            questions.append(question)
+
+    question_selected = random.choice(questions)
+    current_question = Question.format(question_selected)
+
+    return {"previousQuestion": previous, "question": current_question}

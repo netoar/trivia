@@ -45,14 +45,6 @@ class Question(db.Model):
         }
 
 
-"""
-def map_questions(questions_raw, pagination):
-    questions = [question.format() for question in questions_raw]
-    current_questions = questions[0 : pagination[1]]
-    return current_questions
-"""
-
-
 def map_questions(questions_raw):
     current_questions = [question.format() for question in questions_raw]
     return current_questions
@@ -66,15 +58,12 @@ def paginate_questions(page: int) -> tuple:
 
 
 def get_questions(page):
-    # paginate(page=None, per_page=None, error_out=True, max_per_page=None)
-
     questions_raw = Question.query.paginate(
         page=page,
         per_page=QUESTIONS_PER_PAGE,
         error_out=True,
         max_per_page=QUESTIONS_PER_PAGE,
     )
-    # pagination = paginate_questions(page)
     questions = map_questions(questions_raw.items)
     categories = get_categories()
 
@@ -84,6 +73,7 @@ def get_questions(page):
         "currentCategory": None,
         "categories": list(map(lambda category: category["type"], categories)),
         "total_pages": questions_raw.pages,
+        "success": True,
     }
 
 
@@ -138,6 +128,7 @@ def get_questions_category(category_id: int, offset: bool, page) -> dict:
         "questions": questions,
         "total_questions": len(questions),
         "total_pages": questions_raw.pages,
+        "success": True,
     }
 
 
@@ -147,7 +138,7 @@ def search_term(search_term, page):
     ).all()
     pagination = paginate_questions(page)
     results = map_questions(questions_search)
-    return {"questions": results, "total_questions": len(results)}
+    return {"questions": results, "total_questions": len(results), "success": True}
 
 
 def play(category_id, previous):

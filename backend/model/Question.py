@@ -57,6 +57,16 @@ def paginate_questions(page: int) -> tuple:
     return pagination
 
 
+def get_question_by_id(question_id):
+    question = Question.query.filter_by(id=question_id).first()
+    return question
+
+
+def get_first_question():
+    question = Question.query.first()
+    return question
+
+
 def get_questions(page):
     questions_raw = Question.query.paginate(
         page=page,
@@ -88,7 +98,7 @@ def delete_question_by_id(question_id: int):
         db.session.rollback()
     finally:
         db.session.close()
-    questions = get_questions_category(category, False)
+    questions = get_questions_category(category, False, 1)
     return questions
 
 
@@ -111,11 +121,8 @@ def post_question(body):
 
 
 def get_questions_category(category_id: int, offset: bool, page) -> dict:
-    if offset == True:
-        category_id_updated = category_id + 1
-    else:
-        category_id_updated = category_id
-    questions_raw = Question.query.filter_by(category=category_id_updated).paginate(
+    category = category_id + 1 if offset else category_id
+    questions_raw = Question.query.filter_by(category=str(category)).paginate(
         page=page,
         per_page=QUESTIONS_PER_PAGE,
         error_out=True,

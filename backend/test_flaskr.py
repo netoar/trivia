@@ -94,14 +94,56 @@ class TriviaTestCase(unittest.TestCase):
         question_deleted = Question.get_question_by_id(question.id)
         self.assertEqual(question_deleted, None)
 
-    """
-    def test_404_get_category_questions(self):
-        # GET all questions from a category wrong
+    def test_6_quizzes_all(self):
+        # Get a question from all categories
+        # Confirm the question isn't in the previous question
+        result = self.client().post(
+            "/quizzes",
+            json={
+                "quiz_category": {"id": 0, "type": "All"},
+                "previous_questions": [1, 2],
+            },
+        )
+        result_json = json.loads(result.data)
+        question = result_json["question"]
+        previous = result_json["previousQuestion"]
+        self.assertEqual(result.status_code, 200)
+        self.assertNotIn(question["id"], previous)
+
+    def test_7_quizzes_category(self):
+        # Get a question from a given category
+        result = self.client().post(
+            "/quizzes",
+            json={
+                "quiz_category": {"id": 1, "type": "Science"},
+                "previous_questions": [1, 2],
+            },
+        )
+        result_json = json.loads(result.data)
+        self.assertEqual(result.status_code, 200)
+        self.assertEqual(result_json["question"]["category"], "1")
+
+    def test_8_500_viewQuiz(self):
+        result = self.client().post(
+            "/quizzes",
+            json={
+                "quiz_category": {"id": 400, "type": "Science"},
+                "previous_questions": [1, 2],
+            },
+        )
+        result_json = json.loads(result.data)
+        self.assertEqual(result.status_code, 500)
+
+    def test_9_404_get_category_questions(self):
         result = self.client().get("/categories/100/questions")
         result_json = json.loads(result.data)
         self.assertEqual(result.status_code, 404)
+
+    def test_10_422_create_question(self):
+        result = self.client().post("/questions", json=self.new_question_error)
+        result_json = json.loads(result.data)
+        self.assertEqual(result.status_code, 422)
         self.assertEqual(result_json["success"], False)
-    """
 
 
 # Make the tests conveniently executable

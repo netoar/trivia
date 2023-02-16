@@ -1,7 +1,7 @@
 import os
 from sqlalchemy import Column, String, Integer, create_engine
 from flask_sqlalchemy import SQLAlchemy
-from flask import jsonify
+from flask import jsonify, abort
 from model.db import db
 from model.Category import get_categories
 import random
@@ -110,7 +110,13 @@ def post_question(body):
             category=body.get("category") or None,
             difficulty=body.get("difficulty") or None,
         )
-        question_new.insert()
+        categories = []
+        categories_raw = get_categories()
+        categories = list(map(lambda category: category["id"], categories_raw))
+        if question_new.category in categories:
+            question_new.insert()
+        else:
+            abort(422)
     except Exception as e:
         db.session.rollback()
         abort(422)
@@ -128,8 +134,8 @@ def get_questions_category(category_id: int, offset: bool, page) -> dict:
         error_out=True,
         max_per_page=QUESTIONS_PER_PAGE,
     )
-    # pagination = paginate_questions(page)
-    # del.query.filter_by(id=1).paginate(page=1, per_page=2)
+    if questions_raw.items is not []:
+        abort(404)
     questions = map_questions(questions_raw.items)
     return {
         "questions": questions,
@@ -156,7 +162,7 @@ def play(category_id, previous):
     if category == 0:  # all categories
         questions_raw = Question.query.all()
     else:
-        questions_raw = Question.query.filter_by(category=category).all()
+        questions_raw = Question.query.filter_by(category=str(category)).all()
 
     if previous != []:
         for question in questions_raw:
@@ -169,4 +175,4 @@ def play(category_id, previous):
     question_selected = random.choice(questions)
     current_question = Question.format(question_selected)
 
-    return {"previousQuestion": previous, "question": current_question}
+    return {"previousQuestion": previous, "question": current_question, "success": True}

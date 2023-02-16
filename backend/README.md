@@ -90,6 +90,100 @@ You will need to provide detailed documentation of your API endpoints including 
 }
 ```
 
+`GET '/api/v1.0/questions'`
+
+- Fetches a dictionary of questions.
+- Request Arguments: None
+- Returns: An object with several keys described below.
+
+```json
+{
+  "questions": dictionary of questions,
+  "total_questions": number of items in questions above,
+  "currentCategory": None,
+  "categories": dictionary of categories,
+  "total_pages": number of pages depending the questions per page value,
+  "success": True,
+    }
+```
+
+
+`DELETE '/api/v1.0/questions/<int:question_id>'`
+
+- Removes a question
+- Request Arguments: question_id
+- Returns: An dictionary of the remain questions.
+
+```json
+{
+  "questions": dictionary of questions,
+  "total_questions": number of questions in the dictionary above,
+  "total_pages": number of pages of questions,
+  "success": True,
+}
+```
+
+`POST '/api/v1.0/questions'`
+
+- Add a question
+- Request Arguments: None
+- Returns: An dictionary of all the questions including the new one.
+
+```json
+{
+  "questions": dictionary of questions,
+  "total_questions": number of items in questions above,
+  "currentCategory": None,
+  "categories": dictionary of categories,
+  "total_pages": number of pages depending the questions per page value,
+  "success": True,
+    }
+```
+
+
+`POST '/api/v1.0/search'`
+
+- Search based on a search term
+- Request Arguments: None
+- Returns: An dictionary of all the questions that included the search term.
+
+```json
+{
+  "questions": dictionary of questions,
+  "total_questions": number of items in questions above,
+  "success": True,
+    }
+```
+
+`GET '/api/v1.0/categories/<int:category_id>/questions'`
+
+- Search based on a category
+- Request Arguments: category_id
+- Returns: An dictionary of all the questions that included in the category selected.
+
+```json
+{
+  "questions": dictionary of questions included in the category,
+  "total_questions": number of items in questions above,,
+  "total_pages": number of pages depending the questions per page value,
+  "success": True,
+    }
+```
+
+`POST '/api/v1.0/quizzes'`
+
+- Play the game based in a category selected.
+- Request Arguments: None
+- Returns: An dictionary with a question that is different from the question before and its category is the selected.
+
+```json
+{
+  "previousQuestion": array with all the questions_id played before,
+  "question": question to play,
+  "success": True,
+    }
+```
+
 ## Testing
 
 Write at least one test for the success and at least one error behavior of each endpoint using the unittest library.

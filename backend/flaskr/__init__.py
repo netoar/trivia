@@ -154,7 +154,6 @@ def create_app(test_config=None):
     """
     @TODO:
     Create error handlers for all expected errors
-    including 404 and 422.
     400, 404, 422, and 500.
     """
 
@@ -166,9 +165,9 @@ def create_app(test_config=None):
         )
 
     @app.errorhandler(404)
-    def unprocessable(error):
+    def not_found(error):
         return (
-            jsonify({"success": False, "error": 404, "message": "unprocessable"}),
+            jsonify({"success": False, "error": 404, "message": "Not found"}),
             404,
         )
 
